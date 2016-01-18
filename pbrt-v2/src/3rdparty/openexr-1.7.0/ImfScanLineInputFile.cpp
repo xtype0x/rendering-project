@@ -56,7 +56,6 @@
 #include <string>
 #include <vector>
 #include <assert.h>
-#include <algorithm>
 
 
 namespace Imf {

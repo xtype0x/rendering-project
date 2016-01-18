@@ -373,7 +373,7 @@ Spectrum MetropolisRenderer::Lpath(const Scene *scene,
             
             Ld = vc.alpha *
                  EstimateDirect(scene, this, arena, light, pc, nc, vc.wPrev,
-                                vc.isect.rayEpsilon, time, vc.bsdf, rng,
+                                vc.isect.rayEpsilon, time, vc.bsdf, rng, NULL,
                                 ls.lightSample, ls.bsdfSample,
                                 BxDFType(BSDF_ALL & ~BSDF_SPECULAR)) / lightPdf;
             PBRT_MLT_FINISHED_ESTIMATE_DIRECT();
@@ -434,7 +434,7 @@ Spectrum MetropolisRenderer::Lbidir(const Scene *scene,
             
             Ld = vc.alpha *
                  EstimateDirect(scene, this, arena, light, pc, nc, vc.wPrev,
-                                vc.isect.rayEpsilon, time, vc.bsdf, rng,
+                                vc.isect.rayEpsilon, time, vc.bsdf, rng, NULL,
                                 ls.lightSample, ls.bsdfSample,
                                 BxDFType(BSDF_ALL & ~BSDF_SPECULAR)) / lightPdf;
             PBRT_MLT_FINISHED_ESTIMATE_DIRECT();

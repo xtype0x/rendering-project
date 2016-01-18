@@ -35,6 +35,37 @@
 #include "accelerators/bvh.h"
 #include "probes.h"
 #include "paramset.h"
+#include "core/timer.h"
+
+//  LBVH Morton Code data structure
+struct LBVHPrimitiveInfo {
+    LBVHPrimitiveInfo() {}
+    LBVHPrimitiveInfo(uint32_t pn, const BBox &b)
+        : primitiveNumber(pn), bounds(b)
+    {
+        centroid = .5f * b.pMin + .5f * b.pMax;
+    }
+
+    uint32_t primitiveNumber;
+    Point centroid;
+    BBox bounds;
+    uint32_t mortonCode;
+};
+
+uint32_t part1by2(uint32_t x)
+{
+    x &= 0x000003ff;                  // x = ---- ---- ---- ---- ---- --98 7654 3210
+    x = (x ^ (x << 16)) & 0xff0000ff; // x = ---- --98 ---- ---- ---- ---- 7654 3210
+    x = (x ^ (x <<  8)) & 0x0300f00f; // x = ---- --98 ---- ---- 7654 ---- ---- 3210
+    x = (x ^ (x <<  4)) & 0x030c30c3; // x = ---- --98 ---- 76-- --54 ---- 32-- --10
+    x = (x ^ (x <<  2)) & 0x09249249; // x = ---- 9--8 --7- -6-- 5--4 --3- -2-- 1--0
+    return x;
+}
+
+uint32_t compMortonCode(uint32_t x, uint32_t y, uint32_t z)
+{
+    return (part1by2(z) << 2) + (part1by2(y) << 1) + (part1by2(x));
+}
 
 // BVHAccel Local Declarations
 struct BVHPrimitiveInfo {
@@ -48,6 +79,60 @@ struct BVHPrimitiveInfo {
     BBox bounds;
 };
 
+
+void countSortMortonCode(vector<LBVHPrimitiveInfo> &buildData,
+        vector<uint32_t> &index, int byteId)
+{
+    //  current order is given by index
+    int count[256];
+    for (int i = 0; i < 256; i++)
+        count[i] = 0;
+    uint32_t length = buildData.size();
+    vector<uint32_t> keys;
+    keys.reserve(length);
+    for (uint32_t i = 0; i < length; i++)
+    {
+        uint32_t key = (buildData[index[i]].mortonCode >> (byteId * 8)) & 0x000000ff;
+        keys.push_back(key);
+        count[key]++;
+    }
+
+    int total = 0;
+    for (int i = 0; i < 256; i++)
+    {
+        int oldCount = count[i];
+        count[i] = total;
+        total += oldCount;
+    }
+    vector<uint32_t> nIndex = index;
+    for (uint32_t i = 0; i < length; i++)
+    {
+        uint32_t key = keys[i];
+        index[count[key]] = nIndex[i];
+        count[key]++;
+    }
+    nIndex.clear();
+}
+
+void radixSortMortonCode(vector<LBVHPrimitiveInfo> &buildData)
+{
+    //  sort the buildData.mortonCode by using radix sort + counting sort
+    //  init an index vector
+    vector<uint32_t> index;
+    index.reserve(buildData.size());
+	
+    for (uint32_t i = 0; i < buildData.size(); i++)
+        index.push_back(i);
+    for (int round = 0; round < 4; round++)
+    {
+        countSortMortonCode(buildData, index, round);
+    }
+    vector<LBVHPrimitiveInfo> nBuildData;
+    nBuildData.reserve(buildData.size());
+    for (uint32_t i = 0; i < buildData.size(); i++)
+        nBuildData.push_back(buildData[index[i]]);
+    buildData.swap(nBuildData);
+}
 
 struct BVHBuildNode {
     // BVHBuildNode Public Methods
@@ -158,6 +243,7 @@ BVHAccel::BVHAccel(const vector<Reference<Primitive> > &p,
     if (sm == "sah")         splitMethod = SPLIT_SAH;
     else if (sm == "middle") splitMethod = SPLIT_MIDDLE;
     else if (sm == "equal")  splitMethod = SPLIT_EQUAL_COUNTS;
+    else if (sm == "lbvh")   splitMethod = SPLIT_LBVH;
     else {
         Warning("BVH split method \"%s\" unknown.  Using \"sah\".",
                 sm.c_str());
@@ -171,24 +257,45 @@ BVHAccel::BVHAccel(const vector<Reference<Primitive> > &p,
     // Build BVH from _primitives_
     PBRT_BVH_STARTED_CONSTRUCTION(this, primitives.size());
 
-    // Initialize _buildData_ array for primitives
-    vector<BVHPrimitiveInfo> buildData;
-    buildData.reserve(primitives.size());
-    for (uint32_t i = 0; i < primitives.size(); ++i) {
-        BBox bbox = primitives[i]->WorldBound();
-        buildData.push_back(BVHPrimitiveInfo(i, bbox));
-    }
-
     // Recursively build BVH tree for primitives
     MemoryArena buildArena;
     uint32_t totalNodes = 0;
     vector<Reference<Primitive> > orderedPrims;
     orderedPrims.reserve(primitives.size());
-    BVHBuildNode *root = recursiveBuild(buildArena, buildData, 0,
+    BVHBuildNode *root = NULL;
+    if (splitMethod == SPLIT_LBVH)
+    {
+        vector<LBVHPrimitiveInfo> buildData;
+        buildData.reserve(primitives.size());
+        for (uint32_t i = 0; i < primitives.size(); i++)
+        {
+            BBox bbox = primitives[i]->WorldBound();
+            buildData.push_back(LBVHPrimitiveInfo(i, bbox));
+        }
+		Timer lbvhTimer;
+		lbvhTimer.Start();
+        root = buildLBVH(buildArena, buildData, &totalNodes, orderedPrims);
+		//printf("Elapsed time to build LBVH: %.2f seconds\n", lbvhTimer.Time());
+    }
+    else
+    {
+		//	sah
+        vector<BVHPrimitiveInfo> buildData;
+        buildData.reserve(primitives.size());
+        for (uint32_t i = 0; i < primitives.size(); ++i) {
+            BBox bbox = primitives[i]->WorldBound();
+            buildData.push_back(BVHPrimitiveInfo(i, bbox));
+        }
+		Timer sahTimer;
+		sahTimer.Start();
+        root = recursiveBuild(buildArena, buildData, 0,
                                         primitives.size(), &totalNodes,
                                         orderedPrims);
+		//printf("Elapsed time to build BVH: %.2f seconds\n", sahTimer.Time());
+    }
     primitives.swap(orderedPrims);
-        Info("BVH created with %d nodes for %d primitives (%.2f MB)", totalNodes,
+	orderedPrims.clear();
+    Info("BVH created with %d nodes for %d primitives (%.2f MB)", totalNodes,
              (int)primitives.size(), float(totalNodes * sizeof(LinearBVHNode))/(1024.f*1024.f));
 
     // Compute representation of depth-first traversal of BVH tree
@@ -197,15 +304,176 @@ BVHAccel::BVHAccel(const vector<Reference<Primitive> > &p,
         new (&nodes[i]) LinearBVHNode;
     uint32_t offset = 0;
     flattenBVHTree(root, &offset);
-    Assert(offset == totalNodes);
+	Assert(offset == totalNodes);
     PBRT_BVH_FINISHED_CONSTRUCTION(this);
 }
-
 
 BBox BVHAccel::WorldBound() const {
     return nodes ? nodes[0].bounds : BBox();
 }
 
+BVHBuildNode *BVHAccel::buildLBVH(MemoryArena &buildArena,
+        vector<LBVHPrimitiveInfo> &buildData, uint32_t *totalNodes,
+        vector<Reference<Primitive> > &orderedPrims)
+{
+    //  compute the bounding box of the centroid points
+    BBox bbox;
+    for (uint32_t i = 0; i < primitives.size(); i++)
+        bbox = Union(bbox, buildData[i].bounds);
+    //  quantize them to integers
+	//	morton code
+	//Timer mortonCodeTimer;
+	//mortonCodeTimer.Start();
+    float invXStep, invYStep, invZStep;
+    Vector v = bbox.pMax - bbox.pMin;
+	uint32_t num = 1024;    
+	invXStep = num / v.x;
+    invYStep = num / v.y;
+    invZStep = num / v.z;
+    for (uint32_t i = 0; i < primitives.size(); i++)
+    {
+        //  fill the member in buildData.mortonCodeX, mortonCodeY, mortonCodeZ
+        //  and mortonCode
+        Vector p = buildData[i].centroid - bbox.pMin;
+        uint32_t x = uint32_t(p.x * invXStep);
+        x = (x < num) ? x : num - 1;
+        uint32_t y = uint32_t(p.y * invYStep);
+        y = (y < num) ? y : num - 1;
+        uint32_t z = uint32_t(p.z * invZStep);
+        z = (z < num) ? z : num - 1;
+        //  compute the morton code
+        buildData[i].mortonCode = compMortonCode(x, y, z);
+    }
+	//printf("Elapsed time to compute morton code: %.2f seconds\n", mortonCodeTimer.Time());
+    //  use radix sort to sort them
+    radixSortMortonCode(buildData);
+	//printf("Elapsed time for radix sort: %.2f seconds\n", myTimer.Time());
+    //  top-down approach to build lbvh
+    BVHBuildNode *node = recursiveBuildLBVH(buildArena, buildData, 0, primitives.size(), totalNodes, orderedPrims, 29);
+	return node;
+}
+
+BVHBuildNode* BVHAccel::recursiveBuildLBVH(MemoryArena &buildArena,
+        vector<LBVHPrimitiveInfo> &buildData, uint32_t start, uint32_t end,
+        uint32_t *totalNodes,
+        vector<Reference<Primitive> > &orderedPrims, int bitLevel)
+{
+	assert(start != end);
+    (*totalNodes)++;
+    BVHBuildNode *node = buildArena.Alloc<BVHBuildNode>();
+    BBox bbox;
+    for (uint32_t i = start; i < end; ++i)
+        bbox = Union(bbox, buildData[i].bounds);
+    uint32_t nPrimitives = end - start;
+	//	if nPrimitives is too small
+	//	or it's the last bit and nPrimitives is no more than 255
+	//	we can build a leaf node
+	//	else if nPrimitives is not so small and it is not the last bit
+	//	or it is the last bit but nPrimitive is very large  
+    if (nPrimitives <= 4 
+		|| (bitLevel < 0 && nPrimitives <= 255)) {
+        // Create leaf _BVHBuildNode_
+        uint32_t firstPrimOffset = orderedPrims.size();
+        for (uint32_t i = start; i < end; ++i) {
+            uint32_t primNum = buildData[i].primitiveNumber;
+            orderedPrims.push_back(primitives[primNum]);
+        }
+        node->InitLeaf(firstPrimOffset, nPrimitives, bbox);
+    }
+	else if (bitLevel < 0)
+	{
+		uint32_t mid = (start + end) / 2;
+        // Compute bound of primitive centroids, choose split dimension _dim_
+        BBox centroidBounds;
+        for (uint32_t i = start; i < end; ++i)
+            centroidBounds = Union(centroidBounds, buildData[i].centroid);
+        int dim = centroidBounds.MaximumExtent();
+        node->InitInterior(dim,
+                        recursiveBuildLBVH(buildArena, buildData, start, mid,
+                            totalNodes, orderedPrims, -1),
+                        recursiveBuildLBVH(buildArena, buildData, mid, end,
+                            totalNodes, orderedPrims, -1));
+	}
+    else
+    {
+        //  compute dimension
+        //  0 for x, 1 for y and 2 for z
+        //  find mid here!
+        //  the mid satisfies that
+        //  the bitLevel-th bit from start to mid - 1 is 0
+        //  but from mid to end-1 is 1
+        //  note that buildData has been sorted
+        //  if mid - start == 0 || end - mid == 0
+        //  then we should go to next level until bitLevel == -1
+        //  if bitLevel == -1, then we should init a leaf node
+        uint32_t mid = 0;
+		bool found = false;
+        while (bitLevel >= 0 && !found)
+        {
+            //  binary search
+            uint32_t value = ((buildData[start].mortonCode >> (bitLevel+1)) << (bitLevel + 1)) + (1 << bitLevel);
+			//  search from mid where buildData[mid].mortonCode >= value and buildData[mid - 1].mortoncode < value
+
+            if (buildData[start].mortonCode >= value || buildData[end - 1].mortonCode < value)
+            {
+                bitLevel--;
+                continue;
+            }
+            uint32_t p = start, q = end - 1;
+            while (true)
+            {
+				mid = (p + q) / 2;
+				if (buildData[mid].mortonCode < value)
+                    p = mid + 1;
+                else
+                    q = mid;
+                if (p == q)
+                {
+                    mid = p;
+					found = true;
+                    break;
+                }
+            }
+        }
+        if (bitLevel < 0)
+        {
+        	//  build a leaf node
+			if (nPrimitives <= 255)
+			{
+        		uint32_t firstPrimOffset = orderedPrims.size();
+        		for (uint32_t i = start; i < end; ++i) {
+            		uint32_t primNum = buildData[i].primitiveNumber;
+            		orderedPrims.push_back(primitives[primNum]);
+        		}
+        		node->InitLeaf(firstPrimOffset, nPrimitives, bbox);
+        	}
+			else
+			{
+				//	split the node
+				uint32_t mid = (start + end) / 2;
+        		// Compute bound of primitive centroids, choose split dimension _dim_
+        		BBox centroidBounds;
+        		for (uint32_t i = start; i < end; ++i)
+            		centroidBounds = Union(centroidBounds, buildData[i].centroid);
+        		int dim = centroidBounds.MaximumExtent();
+        		node->InitInterior(dim,
+                        recursiveBuildLBVH(buildArena, buildData, start, mid,
+                            totalNodes, orderedPrims, -1),
+                        recursiveBuildLBVH(buildArena, buildData, mid, end,
+                            totalNodes, orderedPrims, -1));
+			}
+		}
+        else
+        {
+            node->InitInterior(bitLevel % 3,
+                        recursiveBuildLBVH(buildArena, buildData, start, mid,
+                            totalNodes, orderedPrims, bitLevel - 1),
+                        recursiveBuildLBVH(buildArena, buildData, mid, end,
+                            totalNodes, orderedPrims, bitLevel - 1));
+        }
+    }
+    return node;
+}
 
 BVHBuildNode *BVHAccel::recursiveBuild(MemoryArena &buildArena,
         vector<BVHPrimitiveInfo> &buildData, uint32_t start,
@@ -238,29 +506,14 @@ BVHBuildNode *BVHAccel::recursiveBuild(MemoryArena &buildArena,
         // Partition primitives into two sets and build children
         uint32_t mid = (start + end) / 2;
         if (centroidBounds.pMax[dim] == centroidBounds.pMin[dim]) {
-            // If nPrimitives is no greater than maxPrimsInNode,
-            // then all the nodes can be stored in a compact bvh node.
-            if (nPrimitives <= maxPrimsInNode) {
-                // Create leaf _BVHBuildNode_
-                uint32_t firstPrimOffset = orderedPrims.size();
-                for (uint32_t i = start; i < end; ++i) {
-                    uint32_t primNum = buildData[i].primitiveNumber;
-                    orderedPrims.push_back(primitives[primNum]);
-                }
-                node->InitLeaf(firstPrimOffset, nPrimitives, bbox);
-                return node;
+            // Create leaf _BVHBuildNode_
+            uint32_t firstPrimOffset = orderedPrims.size();
+            for (uint32_t i = start; i < end; ++i) {
+                uint32_t primNum = buildData[i].primitiveNumber;
+                orderedPrims.push_back(primitives[primNum]);
             }
-            else {
-                // else if nPrimitives is greater than maxPrimsInNode, we
-                // need to split it further to guarantee each node contains
-                // no more than maxPrimsInNode primitives.
-                node->InitInterior(dim,
-                                   recursiveBuild(buildArena, buildData, start, mid,
-                                                  totalNodes, orderedPrims),
-                                   recursiveBuild(buildArena, buildData, mid, end,
-                                                  totalNodes, orderedPrims));
-                return node;
-            }
+            node->InitLeaf(firstPrimOffset, nPrimitives, bbox);
+            return node;
         }
 
         // Partition primitives based on _splitMethod_
@@ -349,7 +602,7 @@ BVHBuildNode *BVHAccel::recursiveBuild(MemoryArena &buildArena,
                         CompareToBucket(minCostSplit, nBuckets, dim, centroidBounds));
                     mid = pmid - &buildData[0];
                 }
-                
+
                 else {
                     // Create leaf _BVHBuildNode_
                     uint32_t firstPrimOffset = orderedPrims.size();

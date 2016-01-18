@@ -157,11 +157,11 @@ void ImageFilm::Splat(const CameraSample &sample, const Spectrum &L) {
 void ImageFilm::GetSampleExtent(int *xstart, int *xend,
                                 int *ystart, int *yend) const {
     *xstart = Floor2Int(xPixelStart + 0.5f - filter->xWidth);
-    *xend   = Ceil2Int(xPixelStart - 0.5f + xPixelCount +
+    *xend   = Ceil2Int(xPixelStart + 0.5f + xPixelCount +
                        filter->xWidth);
 
     *ystart = Floor2Int(yPixelStart + 0.5f - filter->yWidth);
-    *yend   = Ceil2Int(yPixelStart - 0.5f + yPixelCount +
+    *yend   = Ceil2Int(yPixelStart + 0.5f + yPixelCount +
                        filter->yWidth);
 }
 
@@ -174,36 +174,46 @@ void ImageFilm::GetPixelExtent(int *xstart, int *xend,
     *yend   = yPixelStart + yPixelCount;
 }
 
+void ImageFilm::WriteRGB(float ** rgbP, int * width, int * height, float splatScale) {
+	// Convert image to RGB and compute final pixel values
+	int nPix = xPixelCount * yPixelCount;
+	float *rgb = new float[3*nPix];
+	int offset = 0;
+	for (int y = 0; y < yPixelCount; ++y) {
+		for (int x = 0; x < xPixelCount; ++x) {
+			// Convert pixel XYZ color to RGB
+			XYZToRGB((*pixels)(x, y).Lxyz, &rgb[3*offset]);
+
+			// Normalize pixel with weight sum
+			float weightSum = (*pixels)(x, y).weightSum;
+			if (weightSum != 0.f) {
+				float invWt = 1.f / weightSum;
+				rgb[3*offset  ] = max(0.f, rgb[3*offset  ] * invWt);
+				rgb[3*offset+1] = max(0.f, rgb[3*offset+1] * invWt);
+				rgb[3*offset+2] = max(0.f, rgb[3*offset+2] * invWt);
+			}
+
+			// Add splat value at pixel
+			float splatRGB[3];
+			XYZToRGB((*pixels)(x, y).splatXYZ, splatRGB);
+			rgb[3*offset  ] += splatScale * splatRGB[0];
+			rgb[3*offset+1] += splatScale * splatRGB[1];
+			rgb[3*offset+2] += splatScale * splatRGB[2];
+			++offset;
+		}
+	}
+
+	if(width)
+		*width = xPixelCount;
+	if(height)
+		*height = yPixelCount;
+	if(rgbP)
+		*rgbP = rgb;
+}
 
 void ImageFilm::WriteImage(float splatScale) {
-    // Convert image to RGB and compute final pixel values
-    int nPix = xPixelCount * yPixelCount;
-    float *rgb = new float[3*nPix];
-    int offset = 0;
-    for (int y = 0; y < yPixelCount; ++y) {
-        for (int x = 0; x < xPixelCount; ++x) {
-            // Convert pixel XYZ color to RGB
-            XYZToRGB((*pixels)(x, y).Lxyz, &rgb[3*offset]);
-
-            // Normalize pixel with weight sum
-            float weightSum = (*pixels)(x, y).weightSum;
-            if (weightSum != 0.f) {
-                float invWt = 1.f / weightSum;
-                rgb[3*offset  ] = max(0.f, rgb[3*offset  ] * invWt);
-                rgb[3*offset+1] = max(0.f, rgb[3*offset+1] * invWt);
-                rgb[3*offset+2] = max(0.f, rgb[3*offset+2] * invWt);
-            }
-
-            // Add splat value at pixel
-            float splatRGB[3];
-            XYZToRGB((*pixels)(x, y).splatXYZ, splatRGB);
-            rgb[3*offset  ] += splatScale * splatRGB[0];
-            rgb[3*offset+1] += splatScale * splatRGB[1];
-            rgb[3*offset+2] += splatScale * splatRGB[2];
-            ++offset;
-        }
-    }
-
+	float * rgb;
+	WriteRGB(&rgb,NULL,NULL,splatScale);
     // Write RGB image
     ::WriteImage(filename, rgb, NULL, xPixelCount, yPixelCount,
                  xResolution, yResolution, xPixelStart, yPixelStart);
@@ -219,9 +229,6 @@ void ImageFilm::UpdateDisplay(int x0, int y0, int x1, int y1,
 
 
 ImageFilm *CreateImageFilm(const ParamSet &params, Filter *filter) {
-    // Intentionally use FindOneString() rather than FindOneFilename() here
-    // so that the rendered image is left in the working directory, rather
-    // than the directory the scene file lives in.
     string filename = params.FindOneString("filename", "");
     if (PbrtOptions.imageFile != "") {
         if (filename != "") {

@@ -70,7 +70,7 @@ Spectrum UniformSampleAllLights(const Scene *scene,
                 bsdfSample = BSDFSample(rng);
             }
             Ld += EstimateDirect(scene, renderer, arena, light, p, n, wo,
-                rayEpsilon, time, bsdf, rng, lightSample, bsdfSample,
+                rayEpsilon, time, bsdf, rng, sample, lightSample, bsdfSample,
                 BxDFType(BSDF_ALL & ~BSDF_SPECULAR));
         }
         L += Ld / nSamples;
@@ -109,7 +109,7 @@ Spectrum UniformSampleOneLight(const Scene *scene,
     }
     return (float)nLights *
         EstimateDirect(scene, renderer, arena, light, p, n, wo,
-                       rayEpsilon, time, bsdf, rng, lightSample,
+                       rayEpsilon, time, bsdf, rng, sample, lightSample,
                        bsdfSample, BxDFType(BSDF_ALL & ~BSDF_SPECULAR));
 }
 
@@ -117,7 +117,7 @@ Spectrum UniformSampleOneLight(const Scene *scene,
 Spectrum EstimateDirect(const Scene *scene, const Renderer *renderer,
         MemoryArena &arena, const Light *light, const Point &p,
         const Normal &n, const Vector &wo, float rayEpsilon, float time,
-        const BSDF *bsdf, RNG &rng, const LightSample &lightSample,
+        const BSDF *bsdf, RNG &rng, const Sample *sample, const LightSample &lightSample,
         const BSDFSample &bsdfSample, BxDFType flags) {
     Spectrum Ld(0.);
     // Sample light source with multiple importance sampling
@@ -130,8 +130,16 @@ Spectrum EstimateDirect(const Scene *scene, const Renderer *renderer,
         Spectrum f = bsdf->f(wo, wi, flags);
         if (!f.IsBlack() && visibility.Unoccluded(scene)) {
             // Add light's contribution to reflected radiance
-            Li *= visibility.Transmittance(scene, renderer, NULL, rng, arena);
-            if (light->IsDeltaLight())
+			if (sample != NULL)
+			{
+				Spectrum T;
+				Spectrum Lvi = renderer->Emission(scene, RayDifferential(visibility.r), sample, rng, &T, arena)*20.0f;
+				Li = T * Li + Lvi;
+			}
+			else
+				Li *= visibility.Transmittance(scene, renderer, NULL, rng, arena);
+            //	Emissive volume
+			if (light->IsDeltaLight())
                 Ld += f * Li * (AbsDot(wi, n) / lightPdf);
             else {
                 bsdfPdf = bsdf->Pdf(wo, wi, flags);
@@ -165,8 +173,15 @@ Spectrum EstimateDirect(const Scene *scene, const Renderer *renderer,
             else
                 Li = light->Le(ray);
             if (!Li.IsBlack()) {
-                Li *= renderer->Transmittance(scene, ray, NULL, rng, arena);
-                Ld += f * Li * AbsDot(wi, n) * weight / bsdfPdf;
+				if (sample != NULL)
+				{
+					Spectrum T;
+					Spectrum Lvi = renderer->Emission(scene, ray, sample, rng, &T, arena)*20.0f;
+					Li = T * Li + Lvi;
+				}
+				else
+					Li *= renderer->Transmittance(scene, ray, NULL, rng, arena);
+				Ld += f * Li * AbsDot(wi, n) * weight / bsdfPdf;
             }
         }
     }

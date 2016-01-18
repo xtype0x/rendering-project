@@ -9,7 +9,6 @@
 #include <ImfRgbaFile.h>
 #include <half.h>
 #include <assert.h>
-#include <algorithm>
 
 using namespace Imf;
 using namespace Imath;
@@ -91,8 +90,8 @@ int main(int argc, char *argv[])
     double avg1 = sum1 / (3. * r1[0] * r1[1]);
     double avg2 = sum2 / (3. * r1[0] * r1[1]);
     double avgDelta = (avg1-avg2) / std::min(avg1, avg2);
-    if ((tol == 0. && (bigDiff > 0 || smallDiff > 0)) ||
-        (tol > 0. && 100.f * fabs(avgDelta) > tol)) {
+//    if ((tol == 0. && (bigDiff > 0 || smallDiff > 0)) ||
+//        (tol > 0. && 100.f * fabs(avgDelta) > tol)) {
 	printf("%s %s\n\tImages differ: %d big (%.2f%%), %d small (%.2f%%)\n"
                "\tavg 1 = %g, avg2 = %g (%f%% delta)\n"
                "\tMSE = %g, RMS = %.3f%%\n",
@@ -105,7 +104,7 @@ int main(int argc, char *argv[])
         if (outfile)
             WriteEXR(outfile, diffImage, r1[0], r1[1]);
         return 1;
-    }
+//    }
 
     return 0;
 }

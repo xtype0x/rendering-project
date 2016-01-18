@@ -1,0 +1,34 @@
+# Blender MTL File: 'None'
+# Material Count: 3
+
+newmtl QT_branch.001
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.790588 0.790588 0.790588
+Ks 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd /Users/shanyang/Downloads/fir4_3ds/stamm21.jpg
+map_Bump /Users/shanyang/Downloads/fir4_3ds/stamm21.jpg
+
+newmtl ast1a
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.627451 0.627451 0.627451
+Ks 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd /Users/shanyang/Downloads/fir4_3ds/stamm22.jpg
+
+newmtl nadeln.001
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.790588 0.790588 0.790588
+Ks 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+illum 2
+map_Kd /Users/shanyang/Downloads/fir4_3ds/nadeln4a.jpg
+map_d /Users/shanyang/Downloads/fir4_3ds/nadeln4a.jpg
