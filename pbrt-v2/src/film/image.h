@@ -54,6 +54,7 @@ public:
         delete filter;
         delete[] filterTable;
     }
+    void WriteRGB(float ** rgb, int * width, int * height, float splatScale);
     void AddSample(const CameraSample &sample, const Spectrum &L);
     void Splat(const CameraSample &sample, const Spectrum &L);
     void GetSampleExtent(int *xstart, int *xend, int *ystart, int *yend) const;

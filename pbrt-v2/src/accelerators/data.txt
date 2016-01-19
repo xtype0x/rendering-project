@@ -1,0 +1,68 @@
+sibenik-sah:
+Elapsed time to build BVH: 0.15 seconds
+Rendering: [+++++++++++++++++++++++++++++++++++++++++++]  (4.7s)        
+sibenik-lbvh
+Elapsed time to build LBVH: 0.03 seconds
+Rendering: [+++++++++++++++++++++++++++++++++++++++++++]  (10.2s)  
+diff:
+sibenik-sah.exr sibenik-lbvh.exr
+	Images differ: 3 big (0.00%), 6 small (0.00%)
+	avg 1 = 0.0770909, avg2 = 0.077091 (-0.000131% delta)
+	MSE = 1.51234e-09, RMS = 0.004%
+
+
+teapot-sah
+Elapsed time to build BVH: 0.00 seconds
+Rendering: [+++++++++++++++++++++++++++++++++++++++++++]  (2.6s)  
+teapot-lbvh
+Elapsed time to build LBVH: 0.00 seconds
+Rendering: [+++++++++++++++++++++++++++++++++++++++++++]  (2.7s)     
+diff:
+0
+
+yeahright-sah
+Elapsed time to build BVH: 0.34 seconds
+Rendering: [+++++++++++++++++++++++++++++++++++++++++++]  (13.6s)  
+yeahright-lbvh
+Elapsed time to build LBVH: 0.08 seconds
+Rendering: [+++++++++++++++++++++++++++++++++++++++++++]  (14.9s)   
+diff:
+0
+
+villa-sah
+Elapsed time to build BVH: 0.05 seconds
+Elapsed time to build BVH: 0.00 seconds
+Elapsed time to build BVH: 0.00 seconds
+Elapsed time to build BVH: 0.00 seconds
+Elapsed time to build BVH: 0.00 seconds
+Elapsed time to build BVH: 0.00 seconds
+Elapsed time to build BVH: 0.05 seconds
+Elapsed time to build BVH: 0.00 seconds
+Elapsed time to build BVH: 0.00 seconds
+Elapsed time to build BVH: 0.00 seconds
+Elapsed time to build BVH: 0.00 seconds
+Elapsed time to build BVH: 0.01 seconds
+Elapsed time to build BVH: 0.00 seconds
+Elapsed time to build BVH: 0.00 seconds
+Elapsed time to build BVH: 5.48 seconds
+Rendering: [+++++++++++++++++++++++++++++++++++++++++++]  (11.6s)  
+villa-lbvh
+Elapsed time to build LBVH: 0.01 seconds
+Elapsed time to build LBVH: 0.00 seconds
+Elapsed time to build LBVH: 0.00 seconds
+Elapsed time to build LBVH: 0.00 seconds
+Elapsed time to build LBVH: 0.00 seconds
+Elapsed time to build LBVH: 0.00 seconds
+Elapsed time to build LBVH: 0.01 seconds
+Elapsed time to build LBVH: 0.00 seconds
+Elapsed time to build LBVH: 0.00 seconds
+Elapsed time to build LBVH: 0.00 seconds
+Elapsed time to build LBVH: 0.00 seconds
+Elapsed time to build LBVH: 0.00 seconds
+Elapsed time to build LBVH: 0.00 seconds
+Elapsed time to build LBVH: 0.00 seconds
+Elapsed time to build LBVH: 1.32 seconds
+Rendering: [+++++++++++++++++++++++++++++++++++++++++++]  (11.1s)      
+diff:
+0
+

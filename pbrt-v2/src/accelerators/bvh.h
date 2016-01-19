@@ -43,6 +43,7 @@ struct BVHBuildNode;
 
 // BVHAccel Forward Declarations
 struct BVHPrimitiveInfo;
+struct LBVHPrimitiveInfo;
 struct LinearBVHNode;
 
 // BVHAccel Declarations
@@ -61,11 +62,18 @@ private:
     BVHBuildNode *recursiveBuild(MemoryArena &buildArena,
         vector<BVHPrimitiveInfo> &buildData, uint32_t start, uint32_t end,
         uint32_t *totalNodes, vector<Reference<Primitive> > &orderedPrims);
+
+    BVHBuildNode *recursiveBuildLBVH(MemoryArena &buildArena,
+            vector<LBVHPrimitiveInfo> &buildData, uint32_t start, uint32_t end,
+                 uint32_t *totalNodes, vector<Reference<Primitive> > &orderedPrims, int bitLevel);
+    BVHBuildNode *buildLBVH(MemoryArena &buildArena,
+            vector<LBVHPrimitiveInfo> &buildData,
+            uint32_t *totalNodes, vector<Reference<Primitive> > &orderedPrims);
     uint32_t flattenBVHTree(BVHBuildNode *node, uint32_t *offset);
 
     // BVHAccel Private Data
     uint32_t maxPrimsInNode;
-    enum SplitMethod { SPLIT_MIDDLE, SPLIT_EQUAL_COUNTS, SPLIT_SAH };
+    enum SplitMethod { SPLIT_MIDDLE, SPLIT_EQUAL_COUNTS, SPLIT_SAH, SPLIT_LBVH };
     SplitMethod splitMethod;
     vector<Reference<Primitive> > primitives;
     LinearBVHNode *nodes;

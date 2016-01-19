@@ -51,6 +51,10 @@ public:
     virtual Spectrum Transmittance(const Scene *scene,
         const RayDifferential &ray, const Sample *sample,
         RNG &rng, MemoryArena &arena) const = 0;
+	//	add emissive volume term
+	virtual Spectrum Emission(const Scene *scene, 
+		const RayDifferential &ray, const Sample *sample,
+		RNG &rng, Spectrum *T, MemoryArena &arena) const;
 };
 
 

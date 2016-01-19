@@ -110,7 +110,7 @@ void ProgressReporter::Done() {
         *curSpace++ = '+';
     fputs(buf, outFile);
     float seconds = (float)timer->Time();
-    fprintf(outFile, " (%.1fs)       \n", seconds);
+    fprintf(outFile, " (%.4fs)       \n", seconds);
     fflush(outFile);
 }
 

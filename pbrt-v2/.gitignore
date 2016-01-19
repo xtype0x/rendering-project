@@ -1,7 +1,5 @@
 *.pyc
 *~
-*.swp
-\#*\#
 .sconsign.dblite
 
 # Build folders:
@@ -11,6 +9,8 @@ src/build
 
 # Common renderer output file:
 pbrt.exr
+*.exr
+
 
 # These files are generated during the build process:
 #src/core/pbrtlex.cpp
@@ -29,3 +29,10 @@ src/pbrt.vs*/*.user
 tmp/
 bin/
 lib/
+
+# ignore folders
+#scenes/
+src/hw4/manykilleroos/brdfs/
+src/hw4/manykilleroos/geometry/
+src/hw4/manykilleroos/spds/
+src/hw4/manykilleroos/textures/

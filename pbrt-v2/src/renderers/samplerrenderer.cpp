@@ -121,13 +121,13 @@ void SamplerRendererTask::Run() {
                       "for image sample.  Setting to black.");
                 Ls[i] = Spectrum(0.f);
             }
-            else if (Ls[i].y() < -1e-5) {
-                Error("Negative luminance value, %f, returned "
-                      "for image sample.  Setting to black.", Ls[i].y());
-                Ls[i] = Spectrum(0.f);
-            }
+            // else if (Ls[i].y() < -1e-5) {
+            //     Error("Negative luminance value, %f, returned"
+            //           "for image sample.  Setting to black.", Ls[i].y());
+            //     Ls[i] = Spectrum(0.f);
+            // }
             else if (isinf(Ls[i].y())) {
-                Error("Infinite luminance value returned "
+                Error("Infinite luminance value returned"
                       "for image sample.  Setting to black.");
                 Ls[i] = Spectrum(0.f);
             }
@@ -196,7 +196,7 @@ void SamplerRenderer::Render(const Scene *scene) {
     // Allocate and initialize _sample_
     Sample *sample = new Sample(sampler, surfaceIntegrator,
                                 volumeIntegrator, scene);
-
+    camera->AutoFocus(this,scene,sample);
     // Create and launch _SamplerRendererTask_s for rendering image
 
     // Compute number of _SamplerRendererTask_s to create for rendering
@@ -255,3 +255,12 @@ Spectrum SamplerRenderer::Transmittance(const Scene *scene,
 }
 
 
+Spectrum SamplerRenderer::Emission(const Scene *scene, 
+		const RayDifferential &ray, const Sample *sample,
+		RNG &rng, Spectrum *T, MemoryArena &arena) const
+{
+	Spectrum localT;
+    if (!T) T = &localT;
+	return volumeIntegrator->Li(scene, this, ray, sample, rng,
+                                        T, arena);
+}

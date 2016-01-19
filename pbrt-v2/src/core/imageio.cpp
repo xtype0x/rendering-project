@@ -35,7 +35,6 @@
 #include "imageio.h"
 #include "spectrum.h"
 #include "targa.h"
-#include <string.h>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
@@ -70,10 +69,13 @@ RGBSpectrum *ReadImage(const string &name, int *width, int *height) {
             !strcmp(name.c_str() + suffixOffset, ".PFM"))
             return ReadImagePFM(name, width, height);
     }
+	/*	Tao Du
+	//	comment out for windows
     Error("Unable to load image stored in format \"%s\" for filename \"%s\". "
           "Returning a constant grey image instead.",
-          strrchr(name.c_str(), '.') ? (strrchr(name.c_str(), '.') + 1) : "(unknown)",
+          rindex(name.c_str(), '.') ? (rindex(name.c_str(), '.') + 1) : "(unknown)",
           name.c_str());
+	*/
     RGBSpectrum *ret = new RGBSpectrum[1];
     ret[0] = 0.5f;
     *width = *height = 1;

@@ -8,7 +8,7 @@ HAVE_EXR=1
 EXR_INCLUDES=-I/usr/local/include/OpenEXR -I/usr/include/OpenEXR -I/opt/local/include/OpenEXR 
 EXR_LIBDIR=-L/usr/local/lib -L/opt/local/lib
 
-HAVE_LIBTIFF=0
+HAVE_LIBTIFF=1
 TIFF_INCLUDES=-I/usr/local/include -I/opt/local/include
 TIFF_LIBDIR=-L/usr/local/lib -L/opt/local/lib
 
@@ -25,6 +25,7 @@ MARCH=-m64
 
 # change this to -g3 for debug builds
 OPT=-O2
+#OPT=-g3
 # comment out this line to enable assertions at runtime
 DEFS += -DNDEBUG
 
@@ -80,7 +81,7 @@ LIBOBJS += $(addprefix objs/, $(subst /,_,$(LIB_CXXSRCS:.cpp=.o)))
 
 HEADERS = $(wildcard */*.h)
 
-TOOLS = bin/bsdftest bin/exravg bin/exrdiff bin/obj2pbrt
+TOOLS = bin/bsdftest bin/exravg bin/exrdiff bin/obj2pbrt bin/spline bin/noise
 ifeq ($(HAVE_LIBTIFF),1)
     TOOLS += bin/exrtotiff
 endif

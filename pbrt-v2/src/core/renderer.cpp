@@ -33,9 +33,14 @@
 // core/renderer.cpp*
 #include "stdafx.h"
 #include "renderer.h"
+#include "spectrum.h"
 
 // Renderer Method Definitions
 Renderer::~Renderer() {
 }
 
+Spectrum Renderer::Emission(const Scene *scene, 
+		const RayDifferential &ray, const Sample *sample,
+		RNG &rng, Spectrum *T, MemoryArena &arena) const 
+{ return Spectrum();}
 
