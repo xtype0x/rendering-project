@@ -487,11 +487,11 @@ Point RealisticCamera::EstimateAutoFocusPos(AfZone &zone, Renderer * renderer, c
 					  "for image sample.  Setting to black.");
 				Ls[i] = Spectrum(0.f);
 			}
-			else if (Ls[i].y() < -1e-5) {
-				Error("Negative luminance value, %f, returned"
-					  "for image sample.  Setting to black.", Ls[i].y());
-				Ls[i] = Spectrum(0.f);
-			}
+			// else if (Ls[i].y() < -1e-5) {
+			// 	Error("Negative luminance value, %f, returned"
+			// 		  "for image sample.  Setting to black.", Ls[i].y());
+			// 	Ls[i] = Spectrum(0.f);
+			// }
 			else if (isinf(Ls[i].y())) {
 				Error("Infinite luminance value returned"
 					  "for image sample.  Setting to black.");
@@ -685,11 +685,11 @@ float RealisticCamera::EvalAutoFocus(Renderer * renderer, const Scene * scene, S
 					  "for image sample.  Setting to black.");
 				Ls[i] = Spectrum(0.f);
 			}
-			else if (Ls[i].y() < -1e-5) {
-				Error("Negative luminance value, %f, returned"
-					  "for image sample.  Setting to black.", Ls[i].y());
-				Ls[i] = Spectrum(0.f);
-			}
+			// else if (Ls[i].y() < -1e-5) {
+			// 	Error("Negative luminance value, %f, returned"
+			// 		  "for image sample.  Setting to black.", Ls[i].y());
+			// 	Ls[i] = Spectrum(0.f);
+			// }
 			else if (isinf(Ls[i].y())) {
 				Error("Infinite luminance value returned"
 					  "for image sample.  Setting to black.");

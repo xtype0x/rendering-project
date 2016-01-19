@@ -10,12 +10,12 @@ Include "geometry/footprint_3_1.5.pbrt"
 	"float rscale" [1]
 	"float gscale" [1]
 	"float bscale" [1]
-	"string aurora_r" "../aurora/r.txt.even"
-	"string aurora_g" "../aurora/g.txt.even"
-	"string aurora_b" "../aurora/b.txt.even"
+	"string aurora_r" "../aurora/r_new.txt.even"
+	"string aurora_g" "../aurora/g_new.txt.even"
+	"string aurora_b" "../aurora/b_new.txt.even"
 	"string aurora_intensity" "../aurora/rays.txt.even"
 	"vector B" [0.06 -1 0]
-	"integer beamNumber" [100]
+	"integer beamNumber" [500]
 	"float alphaD" [25]
 	"float length" [70]
 	"float dt" [0.004]

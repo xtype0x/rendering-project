@@ -1,21 +1,21 @@
 Include "geometry/footprint_3_1.5.pbrt"
   	"color sigma_a" [.01 .01 .01 ]
-	"color sigma_s" [.0 .0 .0]
+	"color sigma_s" [.0 .02 .0]
 	"float g" [0]
 	"point p0" [ 77 100 -60 ] "point p1" [ 120 300 160 ]
 	"float a" [2.0]
 	"float b" [0.03]
-	"vector updir" [0 1 0]
+	"vector updir" [0 0.2 0]
 	"float radius" [0.5]
-	"float rscale" [1]
-	"float gscale" [1]
+	"float rscale" [0.3]
+	"float gscale" [0.5]
 	"float bscale" [1]
 	"string aurora_r" "../aurora/r.txt.even"
 	"string aurora_g" "../aurora/g.txt.even"
 	"string aurora_b" "../aurora/b.txt.even"
 	"string aurora_intensity" "../aurora/rays.txt.even"
 	"vector B" [0.06 -1 0]
-	"integer beamNumber" [500]
+	"integer beamNumber" [10000]
 	"float alphaD" [25]
 	"float length" [70]
 	"float dt" [0.004]
@@ -24,6 +24,6 @@ Include "geometry/footprint_3_1.5.pbrt"
     "float persistence" [0.5]
     "float frequency" [0.1]
     "integer seed" [150]
-    "integer level" [3]
+    "integer level" [5]
     "float magnitude" [30]
     "float perturb" [-20]

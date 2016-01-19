@@ -14,7 +14,7 @@ Jun 4, 2014
 using namespace std;
 
 AuroraGrid::AuroraGrid(const BBox &e, int x, int y, int z, float r)
-    :noise2d(0.5,0.2,3,5), factor(-1)
+    :noise2d(0.5,0.2,3,5)
 {
 	Vector vox = e.pMax - e.pMin;
 	/*

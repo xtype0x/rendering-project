@@ -4,7 +4,7 @@ Film "image"
 #"integer xresolution" [640] "integer yresolution" [640]
   "string filename" "aurora.exr" 
 
-Sampler "bestcandidate" "integer pixelsamples" [8]
+Sampler "bestcandidate" "integer pixelsamples" [4]
 PixelFilter "gaussian"
 
 LookAt -40 40 -40    20 150 120    0 1 0
@@ -24,21 +24,6 @@ VolumeIntegrator "emission" "float stepsize" [0.5]
 
 WorldBegin
 
-#light
-#AttributeBegin
-#	LightSource "infinite" 
-#		"rgb L" [0.7 0.7 0.7]
-#		"string mapname" ["textures/night_2.exr"]
-#		"integer nsamples" [32]
-#AttributeEnd
-
-#AttributeBegin
-#	LightSource "distant"
-#		"rgb L" [0.02 0.02 0.02]
-#		"point from" [0 1 0]
-#		"point to" [0 0 0]
-#AttributeEnd
-
 #Include "aurora_1.pbrt"
 
 #Include "aurora_2.pbrt"
@@ -46,45 +31,38 @@ WorldBegin
 Include "aurora_3.pbrt"
 
 AttributeBegin
-	Translate -28 40 -30
-	Rotate -90 1 0 0
-	Scale 0.035 0.035 0.035
-#Include "geometry/tree_1.pbrt"
-    Include "geometry/tree_4.pbrt"
+#Translate -42 40 -30
+    Translate -38 40 -30
+    Include "geometry/tree_7.pbrt"
 AttributeEnd
 
-#ObjectBegin "Tree"
-#	Rotate -90 1 0 0
-#	Scale 0.035 0.035 0.035
-#	Include "geometry/tree_2.pbrt"
-#ObjectEnd
-#
-#AttributeBegin
-#	Translate 0 40 100
-#    Scale 4 4 4
-#    Include "geometry/tree_5.pbrt"
-##ObjectInstance "Tree"
-#AttributeEnd
-
-#^^
-#AttributeBegin
+AttributeBegin
 #Translate -42 40 -30
-#    Translate -38 39 -30
-#    Include "geometry/tree_6.pbrt"
-#AttributeEnd
-
-#AttributeBegin
-#Translate -42 40 -30
-#    Translate -42 40 -30
-#	Rotate -90 1 0 0
-#	Scale 0.035 0.035 0.035
-#	Include "geometry/tree_2.pbrt"
-#ObjectInstance "Tree"
-#AttributeEnd
+    Translate -41 40 -30
+    Include "geometry/tree_7.pbrt"
+AttributeEnd
 
 AttributeBegin
 #Translate -42 40 -30
     Translate -44 40 -30
+    Include "geometry/tree_7.pbrt"
+AttributeEnd
+
+AttributeBegin
+#Translate -42 40 -30
+    Translate -40 40 -28
+    Include "geometry/tree_7.pbrt"
+AttributeEnd
+
+AttributeBegin
+#Translate -42 40 -30
+    Translate -42.5 40 -28
+    Include "geometry/tree_7.pbrt"
+AttributeEnd
+
+AttributeBegin
+#Translate -42 40 -30
+    Translate -43.5 40 -28
     Include "geometry/tree_7.pbrt"
 AttributeEnd
 
@@ -100,14 +78,14 @@ AttributeBegin
 #Texture "obj-kd" "color" "scale" "texture tex1" "obj-kd-img" "color tex2" [1.0000 1.0000 1.0000]
 #Texture "obj-ks" "color" "constant" "color value" [0.000000 0.000000 0.000000]
 #Material "uber" "texture Kd" "obj-kd" "texture Ks" "obj-ks" "float roughness" [0.400000] "rgb Kt" [0.000000 0.000000 0.000000] "float index" [1.500000] "rgb opacity" [1.000000 1.000000 1.000000] 
-Texture "night" "spectrum" "imagemap" "string filename" "textures/night.exr"
+Texture "night" "spectrum" "imagemap" "string filename" "textures/dead.exr"
 Material "matte" "texture Kd" "night"
 	Translate 130 350 400
 	Rotate 40 -110 60 0
 	Scale 5 5 1 
     Shape "trianglemesh"  
 		"integer indices" [0 2 1 0 3 2 ] 
-		"point P" [-100 -100 0 100 -100 0 100 100 0 -100 100 0 ]
+		"point P" [-85 -50 0 100 -100 0 100 100 0 -100 100 0 ]
 		"float uv" [0 1 1 1 1 0 0 0]
 AttributeEnd
 

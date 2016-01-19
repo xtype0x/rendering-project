@@ -7,14 +7,14 @@ Include "geometry/footprint_3_1.5.pbrt"
 	"float b" [0.02]
 	"vector updir" [0 1 0]
 	"float radius" [0.5]
-	"string aurora_r" "../aurora/r.txt.even"
-	"string aurora_g" "../aurora/g.txt.even"
-	"string aurora_b" "../aurora/b.txt.even"
+	"string aurora_r" "../aurora/r.txt"
+	"string aurora_g" "../aurora/g.txt"
+	"string aurora_b" "../aurora/b.txt"
 	"string aurora_intensity" "../aurora/rays.txt.even"
 	"vector B" [0.06 -1 0]
-	"integer beamNumber" [100]
+	"integer beamNumber" [10000]
 	"float alphaD" [25]
-	"float length" [70]
+	"float length" [50]
 	"float dt" [0.004]
 	"float dA" [12]
     "float threshold" [0.2]
