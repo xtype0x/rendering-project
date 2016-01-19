@@ -1,9 +1,3 @@
-/*
-Tao Du
-taodu@stanford.edu
-Jun 4, 2014
-*/
-
 // volumes/aurora.cpp*
 #include "stdafx.h"
 #include "volumes/aurora.h"

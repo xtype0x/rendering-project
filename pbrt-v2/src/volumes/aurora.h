@@ -1,9 +1,3 @@
-/*
-Tao Du
-taodu@stanford.edu
-Jun 4, 2014
-*/
-
 #if defined(_MSC_VER)
 #pragma once
 #endif

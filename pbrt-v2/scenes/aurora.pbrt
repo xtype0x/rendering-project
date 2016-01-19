@@ -1,6 +1,6 @@
 Film "image"
-#"integer xresolution" [1578] "integer yresolution" [1080]
-"integer xresolution" [640] "integer yresolution" [438]
+"integer xresolution" [1578] "integer yresolution" [1080]
+#"integer xresolution" [640] "integer yresolution" [438]
 #"integer xresolution" [640] "integer yresolution" [640]
   "string filename" "aurora.exr" 
 

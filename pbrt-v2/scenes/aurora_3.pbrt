@@ -15,7 +15,7 @@ Include "geometry/footprint_3_1.5.pbrt"
 	"string aurora_b" "../aurora/b.txt.even"
 	"string aurora_intensity" "../aurora/rays.txt.even"
 	"vector B" [0.06 -1 0]
-	"integer beamNumber" [10000]
+	"integer beamNumber" [100000]
 	"float alphaD" [25]
 	"float length" [70]
 	"float dt" [0.004]
